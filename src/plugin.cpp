@@ -161,10 +161,12 @@ void MMSPlugin::Hook_ClientDisconnect(CPlayerSlot slot, ENetworkDisconnectionRea
 
 void MMSPlugin::Hook_ClientCommand(CPlayerSlot slot, const CCommand &args)
 {
+	const int playerSlot = slot.Get();
 	const char *command = args.Arg(0);
-	if (command && (V_stricmp(command, "drop") == 0 || V_stricmp(command, "cs2visuals_cycle") == 0))
+	if (command && playerSlot >= 0 &&
+		(V_stricmp(command, "drop") == 0 || V_stricmp(command, "cs2visuals_cycle") == 0))
 	{
-		g_Brightness.Cycle(slot.Get());
+		g_Brightness.Cycle(playerSlot);
 		RETURN_META(MRES_SUPERCEDE);
 	}
 
@@ -175,10 +177,11 @@ void MMSPlugin::Hook_DispatchConCommand(ConCommandRef cmd, const CCommandContext
 {
 	(void)cmd;
 	const char *command = args.Arg(0);
-	const int slot = context.GetPlayerSlot().Get();
-	if (command && slot >= 0 && (V_stricmp(command, "drop") == 0 || V_stricmp(command, "cs2visuals_cycle") == 0))
+	const int playerSlot = context.GetPlayerSlot().Get();
+	if (command && playerSlot >= 0 &&
+		(V_stricmp(command, "drop") == 0 || V_stricmp(command, "cs2visuals_cycle") == 0))
 	{
-		g_Brightness.Cycle(slot);
+		g_Brightness.Cycle(playerSlot);
 		RETURN_META(MRES_SUPERCEDE);
 	}
 
