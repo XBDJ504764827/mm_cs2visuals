@@ -173,12 +173,11 @@ void MMSPlugin::Hook_ClientCommand(CPlayerSlot slot, const CCommand &args)
 
 void MMSPlugin::Hook_DispatchConCommand(ConCommandRef cmd, const CCommandContext &context, const CCommand &args)
 {
-	(void)cmd;
 	const char *command = args.Arg(0);
 	const int slot = context.GetPlayerSlot().Get();
 	if (command && slot >= 0 && (V_stricmp(command, "drop") == 0 || V_stricmp(command, "cs2visuals_cycle") == 0))
 	{
-		g_Brightness.Cycle(slot);
+		g_Brightness.Cycle(slot.Get());
 		RETURN_META(MRES_SUPERCEDE);
 	}
 
