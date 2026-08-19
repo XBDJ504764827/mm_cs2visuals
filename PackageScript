@@ -63,6 +63,15 @@ builder.AddFolder(cfg_dst)
 for cfg_file in glob.glob(os.path.join(cfg_src, '*.cfg')):
   builder.AddCopy(cfg_file, os.path.join(cfg_dst, os.path.basename(cfg_file)))
 
+# Signature/offset reference for the post-processing runtime. The binary
+# embeds the patterns for compatibility, while shipping this file makes the
+# required server ABI assumptions visible to administrators.
+gamedata_src = os.path.join(builder.sourcePath, 'gamedata', 'cs2visuals.games.txt')
+gamedata_dst = os.path.join('addons', MMSPlugin.metadata['name'], 'gamedata')
+builder.AddFolder(gamedata_dst)
+if os.path.exists(gamedata_src):
+  builder.AddCopy(gamedata_src, os.path.join(gamedata_dst, 'cs2visuals.games.txt'))
+
 with open(os.path.join(builder.buildPath, 'pdblog.txt'), 'wt') as fp:
   for task in MMSPlugin.binaries:
     if task.debug:
