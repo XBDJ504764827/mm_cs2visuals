@@ -26,13 +26,33 @@ IGameEventSystem *g_pGameEventSystem = nullptr;
 
 PLUGIN_EXPOSE(MMSPlugin, g_ThisPlugin);
 
+namespace
+{
+bool IsBrightnessCommand(const char *command)
+{
+	return command &&
+		(V_stricmp(command, "drop") == 0 || V_stricmp(command, "cs2visuals_cycle") == 0);
+}
+
+bool HandleBrightnessCommand(int playerSlot, const CCommand &args)
+{
+	if (playerSlot < 0 || !IsBrightnessCommand(args.Arg(0)))
+	{
+		return false;
+	}
+
+	g_Brightness.Cycle(playerSlot);
+	return true;
+}
+} // namespace
+
 CON_COMMAND_F(cs2visuals_cycle, "Cycle the CS2 Visuals brightness level",
 			  FCVAR_RELEASE | FCVAR_CLIENT_CAN_EXECUTE | FCVAR_SERVER_CAN_EXECUTE)
 {
-	const int slot = context.GetPlayerSlot().Get();
-	if (slot >= 0)
+	const CPlayerSlot player = context.GetPlayerSlot();
+	if (HandleBrightnessCommand(player.Get(), args))
 	{
-		g_Brightness.Cycle(slot);
+		return;
 	}
 }
 
@@ -161,12 +181,8 @@ void MMSPlugin::Hook_ClientDisconnect(CPlayerSlot slot, ENetworkDisconnectionRea
 
 void MMSPlugin::Hook_ClientCommand(CPlayerSlot slot, const CCommand &args)
 {
-	const int playerSlot = slot.Get();
-	const char *command = args.Arg(0);
-	if (command && playerSlot >= 0 &&
-		(V_stricmp(command, "drop") == 0 || V_stricmp(command, "cs2visuals_cycle") == 0))
+	if (HandleBrightnessCommand(slot.Get(), args))
 	{
-		g_Brightness.Cycle(playerSlot);
 		RETURN_META(MRES_SUPERCEDE);
 	}
 
@@ -175,12 +191,10 @@ void MMSPlugin::Hook_ClientCommand(CPlayerSlot slot, const CCommand &args)
 
 void MMSPlugin::Hook_DispatchConCommand(ConCommandRef cmd, const CCommandContext &context, const CCommand &args)
 {
-	const char *command = args.Arg(0);
-	const int playerSlot = context.GetPlayerSlot().Get();
-	if (command && playerSlot >= 0 &&
-		(V_stricmp(command, "drop") == 0 || V_stricmp(command, "cs2visuals_cycle") == 0))
+	(void)cmd;
+	const CPlayerSlot player = context.GetPlayerSlot();
+	if (HandleBrightnessCommand(player.Get(), args))
 	{
-		g_Brightness.Cycle(playerSlot);
 		RETURN_META(MRES_SUPERCEDE);
 	}
 

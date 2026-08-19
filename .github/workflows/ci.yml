@@ -29,6 +29,12 @@ jobs:
         run: |
           python3 -m py_compile configure.py AMBuildScript AMBuilder PackageScript
           python3 -m json.tool plugin-metadata.json >/dev/null
+      - name: Reject stale player-slot access
+        run: |
+          if rg -n 'const int slot\s*=.*Get\(\)|Cycle\(slot\.Get\(\)\)' src; then
+            echo 'Invalid player-slot access found: an int slot must not call .Get().' >&2
+            exit 1
+          fi
 
   version:
     name: Resolve release version
