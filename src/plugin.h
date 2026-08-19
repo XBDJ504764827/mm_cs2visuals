@@ -28,7 +28,7 @@ public:
 	void Hook_ClientPutInServer(CPlayerSlot slot, const char *name, int type, uint64 xuid);
 	void Hook_ClientDisconnect(CPlayerSlot slot, ENetworkDisconnectionReason reason, const char *name,
 								   uint64 xuid, const char *networkId);
-	void Hook_DispatchConCommand(ConCommandRef cmd, const CCommandContext &context, const CCommand &args);
+	void Hook_ClientCommand(CPlayerSlot slot, const CCommand &args);
 
 	const char *GetAuthor() { return PLUGIN_AUTHOR; }
 	const char *GetName() { return PLUGIN_DISPLAY_NAME; }

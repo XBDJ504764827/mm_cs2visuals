@@ -11,7 +11,7 @@ SH_DECL_HOOK6_void(IServerGameClients, OnClientConnected, SH_NOATTRIB, 0, CPlaye
 SH_DECL_HOOK4_void(IServerGameClients, ClientPutInServer, SH_NOATTRIB, 0, CPlayerSlot, const char *, int, uint64);
 SH_DECL_HOOK5_void(IServerGameClients, ClientDisconnect, SH_NOATTRIB, 0, CPlayerSlot, ENetworkDisconnectionReason,
 				   const char *, uint64, const char *);
-SH_DECL_HOOK3_void(ICvar, DispatchConCommand, SH_NOATTRIB, 0, ConCommandRef, const CCommandContext &, const CCommand &);
+SH_DECL_HOOK2_void(IServerGameClients, ClientCommand, SH_NOATTRIB, 0, CPlayerSlot, const CCommand &);
 
 MMSPlugin g_ThisPlugin;
 BrightnessController g_Brightness;
@@ -51,8 +51,8 @@ bool MMSPlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, boo
 				SH_MEMBER(this, &MMSPlugin::Hook_ClientPutInServer), true);
 	SH_ADD_HOOK(IServerGameClients, ClientDisconnect, g_pGameClients,
 				SH_MEMBER(this, &MMSPlugin::Hook_ClientDisconnect), true);
-	SH_ADD_HOOK(ICvar, DispatchConCommand, g_pICvar,
-				SH_MEMBER(this, &MMSPlugin::Hook_DispatchConCommand), false);
+	SH_ADD_HOOK(IServerGameClients, ClientCommand, g_pGameClients,
+				SH_MEMBER(this, &MMSPlugin::Hook_ClientCommand), false);
 
 	META_CONVAR_REGISTER(FCVAR_NONE);
 	return true;
@@ -66,8 +66,8 @@ bool MMSPlugin::Unload(char *error, size_t maxlen)
 				   SH_MEMBER(this, &MMSPlugin::Hook_ClientPutInServer), true);
 	SH_REMOVE_HOOK(IServerGameClients, ClientDisconnect, g_pGameClients,
 				   SH_MEMBER(this, &MMSPlugin::Hook_ClientDisconnect), true);
-	SH_REMOVE_HOOK(ICvar, DispatchConCommand, g_pICvar,
-				   SH_MEMBER(this, &MMSPlugin::Hook_DispatchConCommand), false);
+	SH_REMOVE_HOOK(IServerGameClients, ClientCommand, g_pGameClients,
+				   SH_MEMBER(this, &MMSPlugin::Hook_ClientCommand), false);
 
 	g_Brightness.ResetAll();
 	return true;
@@ -131,14 +131,12 @@ void MMSPlugin::Hook_ClientDisconnect(CPlayerSlot slot, ENetworkDisconnectionRea
 	RETURN_META(MRES_IGNORED);
 }
 
-void MMSPlugin::Hook_DispatchConCommand(ConCommandRef cmd, const CCommandContext &context, const CCommand &args)
+void MMSPlugin::Hook_ClientCommand(CPlayerSlot slot, const CCommand &args)
 {
-	(void)cmd;
 	const char *command = args.Arg(0);
-	const int slot = context.GetPlayerSlot().Get();
-	if (command && slot >= 0 && strcmp(command, "drop") == 0)
+	if (command && strcmp(command, "drop") == 0)
 	{
-		g_Brightness.Cycle(slot);
+		g_Brightness.Cycle(slot.Get());
 		RETURN_META(MRES_SUPERCEDE);
 	}
 
