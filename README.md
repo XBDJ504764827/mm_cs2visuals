@@ -14,6 +14,8 @@ The plugin sends `r_fullscreen_gamma` only to the player who changed the setting
 
 The release archives preserve the CS2 installation layout, so no files need to be moved after extraction.
 
+Pull requests compile both Linux and Windows versions and upload installable preview ZIPs as workflow artifacts. Download those artifacts from the PR's **Actions** run to test the plugin. Preview builds never create tags or Releases; a tag and Release are created only after the PR is merged into `main`.
+
 ## Controls
 
 When a player joins, the plugin binds G to `cs2visuals_cycle` for that player. This avoids relying on the original `drop` command, which KZ plugins commonly repurpose. The plugin also accepts `drop` as a compatibility fallback. To bind it manually:

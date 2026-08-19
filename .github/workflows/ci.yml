@@ -1,4 +1,4 @@
-name: Build and Release
+name: CI, Preview Builds, and Release
 
 on:
   push:
@@ -7,7 +7,8 @@ on:
     branches: [develop, main]
 
 permissions:
-  contents: write
+  contents: read
+  actions: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -163,11 +164,50 @@ jobs:
           name: cs2visuals-windows
           path: build/package
 
-  release:
-    name: Publish GitHub Release
-    if: needs.version.outputs.release == 'true'
+  # Pull requests get installable archives for server-side testing. This job
+  # intentionally has no release or tag steps; only a push to main publishes.
+  preview:
+    name: Package PR preview
+    if: github.event_name == 'pull_request'
     needs: [quality, version, build-linux, build-windows]
     runs-on: ubuntu-latest
+    steps:
+      - name: Download Linux package
+        uses: actions/download-artifact@v4
+        with:
+          name: cs2visuals-linux
+          path: preview/linux
+      - name: Download Windows package
+        uses: actions/download-artifact@v4
+        with:
+          name: cs2visuals-windows
+          path: preview/windows
+      - name: Create installable preview archives
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          short_sha="${COMMIT_SHA:0:12}"
+          (cd preview/linux && zip -qr "../../cs2visuals-pr-${PR_NUMBER}-${short_sha}-linux.zip" .)
+          (cd preview/windows && zip -qr "../../cs2visuals-pr-${PR_NUMBER}-${short_sha}-windows.zip" .)
+      - name: Upload PR test packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: cs2visuals-pr-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
+          path: |
+            cs2visuals-pr-*-linux.zip
+            cs2visuals-pr-*-windows.zip
+          retention-days: 30
+
+  release:
+    name: Publish GitHub Release
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.version.outputs.release == 'true'
+    needs: [quality, version, build-linux, build-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4

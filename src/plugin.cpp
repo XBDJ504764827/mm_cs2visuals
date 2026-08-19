@@ -14,6 +14,7 @@ SH_DECL_HOOK4_void(IServerGameClients, ClientActive, SH_NOATTRIB, 0, CPlayerSlot
 SH_DECL_HOOK5_void(IServerGameClients, ClientDisconnect, SH_NOATTRIB, 0, CPlayerSlot, ENetworkDisconnectionReason,
 				   const char *, uint64, const char *);
 SH_DECL_HOOK2_void(IServerGameClients, ClientCommand, SH_NOATTRIB, 0, CPlayerSlot, const CCommand &);
+SH_DECL_HOOK3_void(ICvar, DispatchConCommand, SH_NOATTRIB, 0, ConCommandRef, const CCommandContext &, const CCommand &);
 
 MMSPlugin g_ThisPlugin;
 BrightnessController g_Brightness;
@@ -25,7 +26,8 @@ IGameEventSystem *g_pGameEventSystem = nullptr;
 
 PLUGIN_EXPOSE(MMSPlugin, g_ThisPlugin);
 
-CON_COMMAND_F(cs2visuals_cycle, "Cycle the CS2 Visuals brightness level", FCVAR_RELEASE | FCVAR_CLIENT_CAN_EXECUTE)
+CON_COMMAND_F(cs2visuals_cycle, "Cycle the CS2 Visuals brightness level",
+			  FCVAR_RELEASE | FCVAR_CLIENT_CAN_EXECUTE | FCVAR_SERVER_CAN_EXECUTE)
 {
 	const int slot = context.GetPlayerSlot().Get();
 	if (slot >= 0)
@@ -57,8 +59,10 @@ bool MMSPlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, boo
 				SH_MEMBER(this, &MMSPlugin::Hook_ClientDisconnect), true);
 	SH_ADD_HOOK(IServerGameClients, ClientCommand, g_pGameClients,
 				SH_MEMBER(this, &MMSPlugin::Hook_ClientCommand), false);
+	SH_ADD_HOOK(ICvar, DispatchConCommand, g_pICvar,
+				SH_MEMBER(this, &MMSPlugin::Hook_DispatchConCommand), false);
 
-	META_CONVAR_REGISTER(FCVAR_NONE);
+	META_CONVAR_REGISTER(FCVAR_RELEASE | FCVAR_CLIENT_CAN_EXECUTE | FCVAR_GAMEDLL);
 	META_CONPRINTF("[CS2 Visuals] Loaded v%s; G will cycle brightness levels.\n", GetVersion());
 	return true;
 }
@@ -75,6 +79,8 @@ bool MMSPlugin::Unload(char *error, size_t maxlen)
 				   SH_MEMBER(this, &MMSPlugin::Hook_ClientDisconnect), true);
 	SH_REMOVE_HOOK(IServerGameClients, ClientCommand, g_pGameClients,
 				   SH_MEMBER(this, &MMSPlugin::Hook_ClientCommand), false);
+	SH_REMOVE_HOOK(ICvar, DispatchConCommand, g_pICvar,
+				   SH_MEMBER(this, &MMSPlugin::Hook_DispatchConCommand), false);
 
 	g_Brightness.ResetAll();
 	return true;
@@ -136,7 +142,7 @@ void MMSPlugin::Hook_ClientActive(CPlayerSlot slot, bool loadGame, const char *n
 	// plugin command so the feature works even when drop is handled internally.
 	if (g_pEngine)
 	{
-		g_pEngine->ClientCommand(slot, "bind g cs2visuals_cycle");
+		g_pEngine->ClientCommand(slot, "bind g \"cs2visuals_cycle\"");
 	}
 	CS2VisualsChat(slot.Get(), "[CS2 Visuals] Loaded. Press G to cycle brightness: default -> 1x -> 2x -> 3x.");
 	RETURN_META(MRES_IGNORED);
@@ -156,9 +162,23 @@ void MMSPlugin::Hook_ClientDisconnect(CPlayerSlot slot, ENetworkDisconnectionRea
 void MMSPlugin::Hook_ClientCommand(CPlayerSlot slot, const CCommand &args)
 {
 	const char *command = args.Arg(0);
-	if (command && strcmp(command, "drop") == 0)
+	if (command && (V_stricmp(command, "drop") == 0 || V_stricmp(command, "cs2visuals_cycle") == 0))
 	{
 		g_Brightness.Cycle(slot.Get());
+		RETURN_META(MRES_SUPERCEDE);
+	}
+
+	RETURN_META(MRES_IGNORED);
+}
+
+void MMSPlugin::Hook_DispatchConCommand(ConCommandRef cmd, const CCommandContext &context, const CCommand &args)
+{
+	(void)cmd;
+	const char *command = args.Arg(0);
+	const int slot = context.GetPlayerSlot().Get();
+	if (command && slot >= 0 && (V_stricmp(command, "drop") == 0 || V_stricmp(command, "cs2visuals_cycle") == 0))
+	{
+		g_Brightness.Cycle(slot);
 		RETURN_META(MRES_SUPERCEDE);
 	}
 

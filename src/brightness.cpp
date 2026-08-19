@@ -3,6 +3,7 @@
 #include "chat.h"
 #include "plugin.h"
 
+#include <chrono>
 #include <cstdio>
 
 #include <engine/igameeventsystem.h>
@@ -117,6 +118,7 @@ void BrightnessController::OnClientConnected(int slot)
 	}
 	m_connected[slot] = true;
 	m_levels[slot] = 0;
+	m_lastCycleTime[slot] = 0;
 }
 
 void BrightnessController::OnClientPutInServer(int slot)
@@ -126,6 +128,7 @@ void BrightnessController::OnClientPutInServer(int slot)
 		return;
 	}
 	m_connected[slot] = true;
+	m_lastCycleTime[slot] = 0;
 	ResetPlayer(slot);
 }
 
@@ -137,6 +140,7 @@ void BrightnessController::OnClientDisconnect(int slot)
 	}
 	m_connected[slot] = false;
 	m_levels[slot] = 0;
+	m_lastCycleTime[slot] = 0;
 }
 
 void BrightnessController::ResetPlayer(int slot)
@@ -150,6 +154,7 @@ void BrightnessController::ResetAll()
 	for (int slot = 0; slot < ABSOLUTE_PLAYER_LIMIT; ++slot)
 	{
 		m_levels[slot] = 0;
+		m_lastCycleTime[slot] = 0;
 		if (m_connected[slot])
 		{
 			ApplyLevel(slot);
@@ -163,6 +168,17 @@ void BrightnessController::Cycle(int slot)
 	{
 		return;
 	}
+
+	// A single client command can pass through both ClientCommand and
+	// DispatchConCommand on some CS2/KZ combinations. Treat those same-tick
+	// callbacks as one key press while preserving normal rapid key presses.
+	const uint64_t now = static_cast<uint64_t>(
+		std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count());
+	if (now >= m_lastCycleTime[slot] && now - m_lastCycleTime[slot] < 50)
+	{
+		return;
+	}
+	m_lastCycleTime[slot] = now;
 
 	m_levels[slot] = (m_levels[slot] + 1) % 4;
 	ApplyLevel(slot);
