@@ -1,0 +1,40 @@
+"Games"
+{
+	"csgo"
+	{
+		"Offsets"
+		{
+			"GameEntitySystem"
+			{
+				"windows" 88
+				"linux" 80
+			}
+			"CheckTransmitPlayerSlot"
+			{
+				"windows" 576
+				"linux" 576
+			}
+		}
+		"Signatures"
+		{
+			"CreateEntityByName"
+			{
+				"library" "server"
+				"windows" "\\x48\\x83\\xEC\\x48\\xC6\\x44\\x24\\x30\\x00"
+				"linux" "\\x48\\x8D\\x05\\x2A\\x2A\\x2A\\x2A\\x55\\x48\\x89\\xFA"
+			}
+			"DispatchSpawn"
+			{
+				"library" "server"
+				"windows" "\\x48\\x89\\x5C\\x24\\x2A\\x57\\x48\\x83\\xEC\\x2A\\x48\\x8B\\xDA\\x48\\x8B\\xF9\\x48\\x85\\xC9\\x0F\\x84\\x2A\\x2A\\x2A\\x2A\\x48\\x85\\xD2"
+				"linux" "\\x48\\x85\\xFF\\x74\\x2A\\x55\\x48\\x89\\xE5\\x41\\x55\\x41\\x54\\x49\\x89\\xFC"
+			}
+			"RemoveEntity"
+			{
+				"library" "server"
+				"windows" "\\x48\\x85\\xC9\\x74\\x2A\\x48\\x8B\\xD1\\x48\\x8B\\x0D\\x2A\\x2A\\x2A\\x2A"
+				"linux" "\\x48\\x89\\xFE\\x48\\x85\\xFF\\x74\\x2A\\x48\\x8D\\x05\\x2A\\x2A\\x2A\\x2A\\x48"
+			}
+		}
+	}
+}

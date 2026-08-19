@@ -4,13 +4,13 @@ CS2 Visuals is a Metamod:Source plugin for CS2 servers. It lets each player cycl
 
 `default -> 1x -> 2x -> 3x -> default`
 
-The plugin sends `r_fullscreen_gamma` only to the player who changed the setting. Other players are not affected. Every connection and map change starts at the default level.
+The plugin creates a Source 2 `post_processing_volume` for the selected player and filters its network transmission so other players never receive it. This changes the final rendered image through the post-processing pipeline instead of changing a server-side gamma value. Every connection and map change starts at the default level.
 
 ## Installation
 
 1. Install Metamod:Source for CS2.
 2. Download the latest release and extract it into the server's `game/csgo/` directory.
-3. The package contains the plugin VDF, platform binary, and `cfg/cs2visuals/cs2visuals.cfg`.
+3. The package contains the plugin VDF, platform binary, gamedata, and `cfg/cs2visuals/cs2visuals.cfg`.
 
 The release archives preserve the CS2 installation layout, so no files need to be moved after extraction.
 
@@ -38,13 +38,12 @@ Edit `cfg/cs2visuals/cs2visuals.cfg`:
 
 ```cfg
 cs2visuals_enabled 1
-cs2visuals_gamma_default 2.2
-cs2visuals_gamma_1 2.0
-cs2visuals_gamma_2 1.8
-cs2visuals_gamma_3 1.6
+cs2visuals_postprocess_1 "lighting/postprocessing/cs2kr/nightvision/nv_soft.vpost"
+cs2visuals_postprocess_2 "lighting/postprocessing/cs2kr/nightvision/nv_medium.vpost"
+cs2visuals_postprocess_3 "lighting/postprocessing/cs2kr/nightvision/nv_strong.vpost"
 ```
 
-Lower gamma values make dark areas brighter. The values are clamped to the safe range `1.0` to `3.0`; the server can reload them with `exec cs2visuals/cs2visuals.cfg`.
+The default paths point to the `.vpost` resources shipped by Workshop addon [3763782470](https://steamcommunity.com/sharedfiles/filedetails/?id=3763782470), which is the asset source used by [CS2KR-NightVision-SW2](https://github.com/CS2KR/CS2KR-NightVision-SW2). Install that addon on the server and clients, and use a resource precacher such as zResourcePrecacher/MultiAddonManager so clients have the compiled `.vpost_c` files. The server config accepts other `.vpost` paths if you provide your own post-processing assets. The plugin logs an initialization error if the Source 2 entity functions cannot be resolved.
 
 ## Build
 
