@@ -3,7 +3,6 @@
 #include "chat.h"
 #include "plugin.h"
 
-#include <algorithm>
 #include <cstdio>
 
 #include <engine/igameeventsystem.h>
@@ -30,7 +29,15 @@ namespace
 {
 float ClampGamma(float value)
 {
-	return std::max(1.0f, std::min(value, 3.0f));
+	if (value < 1.0f)
+	{
+		return 1.0f;
+	}
+	if (value > 3.0f)
+	{
+		return 3.0f;
+	}
+	return value;
 }
 
 float GammaForLevel(int level)
