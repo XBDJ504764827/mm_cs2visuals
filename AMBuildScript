@@ -114,15 +114,15 @@ class MMSPluginConfig(object):
     self.target_archs = set()
 
     self.metadata = {
-      'name': 'sample_mm',
-      'alias': 'sample',
-      'display_name': 'Sample Plugin',
-      'description': 'Sample basic plugin',
-      'author': 'AlliedModders LLC',
-      'url': 'http://www.sourcemm.net/',
-      'log_tag': 'SAMPLE',
-      'license': 'Public Domain',
-      'version': '1.0.0.{{git-shorthash}}',
+      'name': 'cs2visuals',
+      'alias': 'cs2visuals',
+      'display_name': 'CS2 Visuals',
+      'description': 'Per-player brightness controls for dark CS2 maps',
+      'author': 'XBDJ504764827',
+      'url': 'https://github.com/XBDJ504764827/mm_cs2visuals',
+      'log_tag': 'CS2VISUALS',
+      'license': 'MIT',
+      'version': '{{git-version}}',
     }
 
     if builder.options.targets:
@@ -230,6 +230,14 @@ extern const char* PLUGIN_REVISION_COUNT;
       revision_count = runAndReturn(['git', 'rev-list', '--count', 'HEAD'])
       revision_hash = runAndReturn(['git', 'log', '--pretty=format:%h:%H', '-n', '1'])
       shorthash, longhash = revision_hash.split(':')
+
+    if '{{git-version}}' in version:
+      version = os.environ.get('CS2VISUALS_VERSION')
+      if not version:
+        try:
+          version = runAndReturn(['git', 'describe', '--tags', '--abbrev=0']).lstrip('v')
+        except subprocess.CalledProcessError:
+          version = '0.1.0'
 
     if '{{git-shorthash}}' in version:
       version = version.replace('{{git-shorthash}}', shorthash)

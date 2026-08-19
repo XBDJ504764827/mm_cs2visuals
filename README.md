@@ -1,14 +1,71 @@
-[Forked](https://github.com/alliedmodders/metamod-source/tree/master/samples/s2_sample_mm) sample plugin for CS2 testing. Made as base to make minimal reproduction of bugs.
+# CS2 Visuals
 
-### Prerequisites
- * This repository is cloned recursively (ie. has submodules)
- * [python3](https://www.python.org/)
- * [ambuild](https://github.com/alliedmodders/ambuild), make sure ``ambuild`` command is available via the ``PATH`` environment variable;
- * MSVC (VS build tools)/Clang installed for Windows/Linux.
+CS2 Visuals is a Metamod:Source plugin for CS2 servers. It lets each player cycle through four client-side visibility levels on dark maps:
 
-### Setting up
- * ``mkdir build`` & ``cd build`` in the root of the plugin folder.
- * Run ``python3 ../configure.py``.
- * If the process of configuring was successful, you should be able to run ``ambuild`` in the ``\build`` folder to compile the plugin.
- * Once the plugin is compiled the files would be packaged and placed in ``\build\package`` folder.
- * To run the plugin on the server, place the files preserving the layout provided in ``\package``. Be aware that plugins get loaded either by corresponding ``.vdf`` files (automatic step) in the metamod folder, or by listing them in ``addons/metamod/metaplugins.ini`` file (manual step).
+`default -> 1x -> 2x -> 3x -> default`
+
+The plugin sends `r_fullscreen_gamma` only to the player who changed the setting. Other players are not affected. Every connection and map change starts at the default level.
+
+## Installation
+
+1. Install Metamod:Source for CS2.
+2. Download the latest release and extract it into the server's `game/csgo/` directory.
+3. The package contains the plugin VDF, platform binary, and `cfg/cs2visuals/cs2visuals.cfg`.
+
+The release archives preserve the CS2 installation layout, so no files need to be moved after extraction.
+
+## Controls
+
+The plugin uses the server's existing `drop` command as the cycle action. On the configured KZ servers, bind G once:
+
+```cfg
+bind g drop
+```
+
+Players can also bind another key or use the command directly:
+
+```cfg
+bind h cs2visuals_cycle
+```
+
+Each change prints the current level to that player only.
+
+## Configuration
+
+Edit `cfg/cs2visuals/cs2visuals.cfg`:
+
+```cfg
+cs2visuals_enabled 1
+cs2visuals_gamma_default 2.2
+cs2visuals_gamma_1 2.0
+cs2visuals_gamma_2 1.8
+cs2visuals_gamma_3 1.6
+```
+
+Lower gamma values make dark areas brighter. The values are clamped to the safe range `1.0` to `3.0`; the server can reload them with `exec cs2visuals/cs2visuals.cfg`.
+
+## Build
+
+The project follows the AMBuild layout used by `mm_misc_plugins` and `mm-cs2rockthevote`.
+
+Prerequisites:
+
+- Python 3
+- AMBuild 2.2 or newer
+- Metamod:Source source tree
+- CS2 HL2SDK (`cs2` branch)
+- A C++17 compiler (Clang/GCC or MSVC)
+
+```bash
+git clone --recurse-submodules https://github.com/XBDJ504764827/mm_cs2visuals.git
+cd mm_cs2visuals
+mkdir build && cd build
+python3 ../configure.py --enable-optimize
+ambuild
+```
+
+The installable package is written to `build/package/`.
+
+## License
+
+MIT. Copyright 2026 XBDJ504764827.
