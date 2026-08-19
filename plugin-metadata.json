@@ -1,11 +1,11 @@
 {
-    "name": "sample_mm",
-    "alias": "sample",
-    "display_name": "Sample Plugin",
-    "description": "Sample basic plugin",
-    "author": "AlliedModders LLC",
-    "url": "http://www.sourcemm.net/",
-    "log_tag": "SAMPLE",
-    "license": "Public Domain",
-    "version": "1.0.0.{{git-shorthash}}"
+    "name": "cs2visuals",
+    "alias": "cs2visuals",
+    "display_name": "CS2 Visuals",
+    "description": "Per-player brightness controls for dark CS2 maps",
+    "author": "XBDJ504764827",
+    "url": "https://github.com/XBDJ504764827/mm_cs2visuals",
+    "log_tag": "CS2VISUALS",
+    "license": "MIT",
+    "version": "{{git-version}}"
 }
