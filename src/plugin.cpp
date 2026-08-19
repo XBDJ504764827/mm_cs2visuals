@@ -1,4 +1,5 @@
 #include "plugin.h"
+#include "chat.h"
 
 #include <cstring>
 
@@ -9,6 +10,7 @@
 SH_DECL_HOOK6_void(IServerGameClients, OnClientConnected, SH_NOATTRIB, 0, CPlayerSlot, const char *, uint64,
 				   const char *, const char *, bool);
 SH_DECL_HOOK4_void(IServerGameClients, ClientPutInServer, SH_NOATTRIB, 0, CPlayerSlot, const char *, int, uint64);
+SH_DECL_HOOK4_void(IServerGameClients, ClientActive, SH_NOATTRIB, 0, CPlayerSlot, bool, const char *, uint64);
 SH_DECL_HOOK5_void(IServerGameClients, ClientDisconnect, SH_NOATTRIB, 0, CPlayerSlot, ENetworkDisconnectionReason,
 				   const char *, uint64, const char *);
 SH_DECL_HOOK2_void(IServerGameClients, ClientCommand, SH_NOATTRIB, 0, CPlayerSlot, const CCommand &);
@@ -49,12 +51,15 @@ bool MMSPlugin::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, boo
 				SH_MEMBER(this, &MMSPlugin::Hook_OnClientConnected), false);
 	SH_ADD_HOOK(IServerGameClients, ClientPutInServer, g_pGameClients,
 				SH_MEMBER(this, &MMSPlugin::Hook_ClientPutInServer), true);
+	SH_ADD_HOOK(IServerGameClients, ClientActive, g_pGameClients,
+				SH_MEMBER(this, &MMSPlugin::Hook_ClientActive), true);
 	SH_ADD_HOOK(IServerGameClients, ClientDisconnect, g_pGameClients,
 				SH_MEMBER(this, &MMSPlugin::Hook_ClientDisconnect), true);
 	SH_ADD_HOOK(IServerGameClients, ClientCommand, g_pGameClients,
 				SH_MEMBER(this, &MMSPlugin::Hook_ClientCommand), false);
 
 	META_CONVAR_REGISTER(FCVAR_NONE);
+	META_CONPRINTF("[CS2 Visuals] Loaded v%s; G will cycle brightness levels.\n", GetVersion());
 	return true;
 }
 
@@ -64,6 +69,8 @@ bool MMSPlugin::Unload(char *error, size_t maxlen)
 				   SH_MEMBER(this, &MMSPlugin::Hook_OnClientConnected), false);
 	SH_REMOVE_HOOK(IServerGameClients, ClientPutInServer, g_pGameClients,
 				   SH_MEMBER(this, &MMSPlugin::Hook_ClientPutInServer), true);
+	SH_REMOVE_HOOK(IServerGameClients, ClientActive, g_pGameClients,
+				   SH_MEMBER(this, &MMSPlugin::Hook_ClientActive), true);
 	SH_REMOVE_HOOK(IServerGameClients, ClientDisconnect, g_pGameClients,
 				   SH_MEMBER(this, &MMSPlugin::Hook_ClientDisconnect), true);
 	SH_REMOVE_HOOK(IServerGameClients, ClientCommand, g_pGameClients,
@@ -117,6 +124,21 @@ void MMSPlugin::Hook_ClientPutInServer(CPlayerSlot slot, const char *name, int t
 	(void)type;
 	(void)xuid;
 	g_Brightness.OnClientPutInServer(slot.Get());
+	RETURN_META(MRES_IGNORED);
+}
+
+void MMSPlugin::Hook_ClientActive(CPlayerSlot slot, bool loadGame, const char *name, uint64 xuid)
+{
+	(void)loadGame;
+	(void)name;
+	(void)xuid;
+	// KZ servers do not need the original drop action. Bind G to the explicit
+	// plugin command so the feature works even when drop is handled internally.
+	if (g_pEngine)
+	{
+		g_pEngine->ClientCommand(slot, "bind g cs2visuals_cycle");
+	}
+	CS2VisualsChat(slot.Get(), "[CS2 Visuals] Loaded. Press G to cycle brightness: default -> 1x -> 2x -> 3x.");
 	RETURN_META(MRES_IGNORED);
 }
 

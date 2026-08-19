@@ -16,10 +16,10 @@ The release archives preserve the CS2 installation layout, so no files need to b
 
 ## Controls
 
-The plugin uses the server's existing `drop` command as the cycle action. On the configured KZ servers, bind G once:
+When a player joins, the plugin binds G to `cs2visuals_cycle` for that player. This avoids relying on the original `drop` command, which KZ plugins commonly repurpose. The plugin also accepts `drop` as a compatibility fallback. To bind it manually:
 
 ```cfg
-bind g drop
+bind g cs2visuals_cycle
 ```
 
 Players can also bind another key or use the command directly:

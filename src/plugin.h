@@ -26,6 +26,7 @@ public:
 	void Hook_OnClientConnected(CPlayerSlot slot, const char *name, uint64 xuid, const char *networkId,
 								const char *address, bool fakePlayer);
 	void Hook_ClientPutInServer(CPlayerSlot slot, const char *name, int type, uint64 xuid);
+	void Hook_ClientActive(CPlayerSlot slot, bool loadGame, const char *name, uint64 xuid);
 	void Hook_ClientDisconnect(CPlayerSlot slot, ENetworkDisconnectionReason reason, const char *name,
 								   uint64 xuid, const char *networkId);
 	void Hook_ClientCommand(CPlayerSlot slot, const CCommand &args);
